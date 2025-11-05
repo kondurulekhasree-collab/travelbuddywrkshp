@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Buddy ✈️</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Poppins', sans-serif; margin:0; background:#fff0f5; color:#333; }
+  header {
+    background: linear-gradient(to right, #ff9a9e, #fecfef);
+    padding: 40px 20px;
+    text-align:center;
+    color:white;
+    border-bottom-left-radius:40px;
+    border-bottom-right-radius:40px;
+    background-image: url('https://source.unsplash.com/1600x600/?travel,adventure');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  header::after {
+    content:''; position:absolute; top:0; left:0; width:100%; height:100%;
+    background: rgba(255,154,158,0.6);
+    border-bottom-left-radius:40px;
+    border-bottom-right-radius:40px;
+  }
+  header h1, header p { position: relative; z-index:1; }
+  header h1 { font-size:3em; margin:0; }
+  header p { font-size:1.3em; }
+
+  #search-bar { text-align:center; margin:20px 0; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+  #search-bar input { padding:12px; width:180px; font-size:16px; border-radius:10px; border:1px solid #ff9a9e; outline:none; }
+  #search-btn { padding:12px 20px; font-size:16px; border:none; background-color:#ff6f91; color:white; border-radius:10px; cursor:pointer; transition:0.3s; }
+  #search-btn:hover { background-color:#ff3f61; }
+
+  section { padding:40px 20px; max-width:1000px; margin:20px auto; background:white; border-radius:30px; box-shadow:0 8px 20px rgba(0,0,0,0.1); }
+  h2 { color:#ff6f91; text-align:center; margin-bottom:20px; }
+
+  .card-container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+  .card { background:#fff0f5; border-radius:20px; padding:20px; width:280px; box-shadow:0 6px 12px rgba(0,0,0,0.1); text-align:center; transition: transform 0.3s, box-shadow 0.3s; }
+  .card:hover { transform: translateY(-8px); box-shadow:0 10px 20px rgba(0,0,0,0.2); }
+  .card img { width:100%; border-radius:15px; margin-bottom:10px; height:160px; object-fit:cover; }
+  .card button, .card a.btn { padding:8px 12px; border:none; border-radius:10px; background-color:#ff6f91; color:white; cursor:pointer; margin-top:10px; transition:0.3s; text-decoration:none; display:inline-block; }
+  .card button:hover, .card a.btn:hover { background-color:#ff3f61; }
+
+  #weather-section { display:flex; justify-content:center; align-items:center; flex-direction:column; gap:10px; }
+  #weather-icon { width:84px; height:84px; display:none; }
+  .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#ffe0ea; border:1px solid #ffc7d7; font-size:13px; }
+
+  .meta{font-size:12px;color:#666}
+
+  /* Booking Modal */
+  #booking-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000; }
+  #booking-modal .modal-content { background:white; padding:30px; border-radius:20px; width:300px; text-align:center; position:relative; }
+  #booking-modal .modal-content span { position:absolute; top:10px; right:15px; cursor:pointer; font-weight:bold; font-size:18px; }
+  #booking-modal .modal-content input, #booking-modal .modal-content select { width:90%; padding:10px; margin:10px 0; border-radius:10px; border:1px solid #ff9a9e; }
+  #booking-modal .modal-content button { padding:10px 20px; border:none; background:#ff6f91; color:white; border-radius:10px; cursor:pointer; margin-top:10px; }
+  #booking-modal .modal-content button:hover { background:#ff3f61; }
+
+  @media(max-width:768px){ .card-container { flex-direction:column; align-items:center; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Travel Buddy ✈️</h1>
+  <p>Your pictorial guide for trips, flights, hotels & essentials!</p>
+</header>
+
+<div id="search-bar">
+  <input type="text" id="start-input" placeholder="Starting point">
+  <input type="text" id="place-input" placeholder="Destination">
+  <button id="search-btn" onclick="searchPlace()">Search</button>
+</div>
+
+<section id="weather-section">
+  <h2>Destination Weather 🌤️</h2>
+  <img id="weather-icon" src="" alt="">
+  <p id="weather-info">Enter a destination to see live weather.</p>
+</section>
+
+<section id="flights-section">
+  <h2>Flight Options ✈️</h2>
+  <div id="flights-list" class="card-container">Search a destination to see flights.</div>
+</section>
+
+<section id="hotels-section">
+  <h2>Hotels & Reservations 🏨</h2>
+  <div id="hotels-list" class="card-container">Search a destination to see hotels.</div>
+</section>
+
+<section id="reviews-section">
+  <h2>Reviews ✨</h2>
+  <div id="reviews-list" class="card-container">Search a destination to see reviews.</div>
+</section>
+
+<section id="shopping-section">
+  <h2>Clothing & Shopping ✨🛍️💗</h2>
+  <div id="shopping-list" class="card-container">Search a destination to see shopping recommendations.</div>
+</section>
+
+<section id="essentials-section">
+  <h2>Essential Needs 🎒</h2>
+  <div id="essentials-list" class="card-container">Search a destination to see essential items.</div>
+</section>
+
+<!-- Booking Modal -->
+<div id="booking-modal">
+  <div class="modal-content">
+    <span onclick="closeModal()">✖</span>
+    <h2 id="booking-title">Book</h2>
+    <input type="text" id="book-name" placeholder="Your Name"><br>
+    <input type="email" id="book-email" placeholder="Email"><br>
+    <input type="date" id="book-date"><br>
+    <input type="number" id="book-days" placeholder="Number of days" min="1"><br>
+    <button onclick="confirmBooking()">Confirm Booking</button>
+  </div>
+</div>
+
+<script>
+// --- Weather: Open-Meteo (no API key required) ---
+const WEATHER_TEXT = {
+  0:['Clear','☀️'], 1:['Mainly clear','🌤️'], 2:['Partly cloudy','⛅'], 3:['Overcast','☁️'],
+  45:['Fog','🌫️'], 48:['Rime fog','🌫️'],
+  51:['Light drizzle','🌦️'], 53:['Drizzle','🌦️'], 55:['Heavy drizzle','🌧️'],
+  56:['Freezing drizzle','🌧️'], 57:['Freezing drizzle','🌧️'],
+  61:['Light rain','🌧️'], 63:['Rain','🌧️'], 65:['Heavy rain','🌧️'],
+  66:['Freezing rain','🌧️'], 67:['Freezing rain','🌧️'],
+  71:['Light snow','🌨️'], 73:['Snow','🌨️'], 75:['Heavy snow','❄️'],
+  77:['Snow grains','❄️'], 80:['Rain showers','🌦️'], 81:['Rain showers','🌦️'], 82:['Violent rain','⛈️'],
+  85:['Snow showers','🌨️'], 86:['Heavy snow showers','❄️'],
+  95:['Thunderstorm','⛈️'], 96:['Thunderstorm + hail','⛈️'], 97:['Thunderstorm + hail','⛈️']
+};
+
+async function getWeather(destination){
+  const info = document.getElementById('weather-info');
+  const icon = document.getElementById('weather-icon');
+  icon.style.display = 'none';
+  info.textContent = 'Fetching weather…';
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=en&format=json`);
+    const geo = await geoRes.json();
+    if(!geo.results || !geo.results.length){
+      info.textContent = 'Could not find that place. Try a city name like "Hyderabad".';
+      return;
+    }
+    const { latitude:lat, longitude:lon, name, country } = geo.results[0];
+
+    const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    const w = await wRes.json();
+    if(!w.current_weather){ info.textContent = 'Weather not available.'; return; }
+    const cw = w.current_weather;
+    const [label, emoji] = WEATHER_TEXT[cw.weathercode] || ['Current weather','🌤️'];
+
+    info.innerHTML = `
+      <span class="pill">${name}${country?`, ${country}`:''}</span><br>
+      ${emoji} <strong>${label}</strong><br>
+      🌡️ Temp: <strong>${cw.temperature}°C</strong><br>
+      💨 Wind: ${cw.windspeed} km/h
+    `;
+    icon.src = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='84' height='84'><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='48'>${emoji}</text></svg>`)} `;
+    icon.style.display = 'block';
+  } catch(err){
+    console.error(err);
+    info.textContent = 'Error fetching weather.';
+  }
+}
+
+/* ---------- Fare estimator (unchanged) ---------- */
+function toINR(n){ return Math.round(n).toLocaleString('en-IN'); }
+function haversineKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lat1 + lon2 - lon1 ? (lon2-lon1) : 0) * Math.PI/180; // keep original logic style
+  const dLonFixed = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLonFixed/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function bandRandom(min, max){ return min + Math.random()*(max-min); }
+function priceBand(distanceKm, isDomestic){
+  if(isDomestic){
+    if(distanceKm <= 300) return [2000, 6000];
+    if(distanceKm <= 800) return [3500, 9000];
+    return [5000, 15000];
+  } else {
+    if(distanceKm <= 2000) return [15000, 35000];
+    if(distanceKm <= 5000) return [25000, 55000];
+    return [35000, 90000];
+  }
+}
+function timeMultiplier(timeStr){
+  const hour = parseInt(timeStr.split(':')[0],10);
+  const isPM = /PM$/i.test(timeStr);
+  const h24 = (hour % 12) + (isPM ? 12 : 0);
+  if(h24 >= 6 && h24 < 10) return 1.15;
+  if(h24 >= 18 && h24 < 22) return 1.15;
+  if(h24 >= 23 || h24 < 6) return 0.9;
+  return 1.0;
+}
+async function geocodeOne(name){
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=en&format=json`);
+  const j = await res.json();
+  if(!j.results || !j.results.length) return null;
+  const { latitude, longitude, country_code } = j.results[0];
+  return { lat: latitude, lon: longitude, cc: (country_code||'').toUpperCase() };
+}
+async function estimateFaresINR(start, place, times){
+  try{
+    const [A, B] = await Promise.all([geocodeOne(start), geocodeOne(place)]);
+    if(!A || !B) throw new Error('Geocode failed');
+    const km = haversineKm(A.lat, A.lon, B.lat, B.lon);
+    const isDomestic = (A.cc && B.cc && A.cc === B.cc);
+    const [min, max] = priceBand(km, isDomestic);
+    return times.map(t=>{
+      const base = bandRandom(min, max) * timeMultiplier(t) * (0.95 + Math.random()*0.1);
+      return Math.max(1500, base);
+    });
+  } catch(e){
+    const [min, max] = [3500, 9000];
+    return times.map(t=>Math.max(1500, bandRandom(min, max) * timeMultiplier(t)));
+  }
+}
+
+/* ---------- Real hotels DB (unchanged from your last step) ---------- */
+const HOTEL_DB = {
+  "delhi":[
+    {name:"The Leela Palace New Delhi", area:"Chanakyapuri", price:22000, rating:4.8, amenities:["Spa","Pool","Butler Service"]},
+    {name:"Taj Palace, New Delhi", area:"Diplomatic Enclave", price:16000, rating:4.7, amenities:["Wi-Fi","Pool","Fine Dining"]},
+    {name:"ITC Maurya, New Delhi", area:"Chanakyapuri", price:15000, rating:4.6, amenities:["Spa","Gym","Restaurants"]}
+  ],
+  "new delhi":[
+    {name:"The Oberoi, New Delhi", area:"Dr. Zakir Hussain Marg", price:20000, rating:4.8, amenities:["Spa","Pool","City View"]},
+    {name:"Taj Palace, New Delhi", area:"Diplomatic Enclave", price:16000, rating:4.7, amenities:["Wi-Fi","Pool","Fine Dining"]},
+    {name:"ITC Maurya, New Delhi", area:"Chanakyapuri", price:15000, rating:4.6, amenities:["Spa","Gym","Restaurants"]}
+  ],
+  "mumbai":[
+    {name:"The Taj Mahal Palace, Mumbai", area:"Colaba", price:24000, rating:4.8, amenities:["Sea View","Pool","Heritage"]},
+    {name:"The Oberoi, Mumbai", area:"Nariman Point", price:20000, rating:4.7, amenities:["Sea View","Pool","Spa"]},
+    {name:"Trident, Nariman Point", area:"Nariman Point", price:12000, rating:4.6, amenities:["Wi-Fi","Pool","Gym"]}
+  ],
+  "bengaluru":[
+    {name:"The Leela Palace Bengaluru", area:"Old Airport Road", price:18000, rating:4.8, amenities:["Spa","Pool","Gardens"]},
+    {name:"The Oberoi, Bengaluru", area:"MG Road", price:14000, rating:4.7, amenities:["Wi-Fi","Pool","Spa"]},
+    {name:"Taj MG Road, Bengaluru", area:"MG Road", price:11000, rating:4.6, amenities:["Gym","Pool","Bar"]}
+  ],
+  "bangalore":[
+    {name:"The Leela Palace Bengaluru", area:"Old Airport Road", price:18000, rating:4.8, amenities:["Spa","Pool","Gardens"]},
+    {name:"The Oberoi, Bengaluru", area:"MG Road", price:14000, rating:4.7, amenities:["Wi-Fi","Pool","Spa"]},
+    {name:"Taj MG Road, Bengaluru", area:"MG Road", price:11000, rating:4.6, amenities:["Gym","Pool","Bar"]}
+  ],
+  "hyderabad":[
+    {name:"Taj Falaknuma Palace", area:"Falaknuma", price:40000, rating:4.9, amenities:["Heritage","Butler","Fine Dining"]},
+    {name:"ITC Kohenur, a Luxury Collection Hotel", area:"Madhapur", price:12000, rating:4.6, amenities:["Spa","Pool","Lake View"]},
+    {name:"Park Hyatt Hyderabad", area:"Banjara Hills", price:13000, rating:4.6, amenities:["Spa","Pool","Restaurants"]}
+  ],
+  "chennai":[
+    {name:"ITC Grand Chola, Chennai", area:"Guindy", price:15000, rating:4.7, amenities:["Spa","Pool","Multiple Restaurants"]},
+    {name:"Taj Coromandel, Chennai", area:"Nungambakkam", price:12000, rating:4.6, amenities:["Gym","Pool","Fine Dining"]},
+    {name:"The Leela Palace Chennai", area:"MRC Nagar", price:16000, rating:4.7, amenities:["Sea View","Pool","Spa"]}
+  ],
+  "kolkata":[
+    {name:"The Oberoi Grand, Kolkata", area:"Esplanade", price:14000, rating:4.7, amenities:["Heritage","Pool","Spa"]},
+    {name:"ITC Royal Bengal, Kolkata", area:"EM Bypass", price:13000, rating:4.6, amenities:["Spa","Pool","Restaurants"]},
+    {name:"Taj City Centre New Town, Kolkata", area:"New Town", price:9500, rating:4.5, amenities:["Wi-Fi","Pool","Gym"]}
+  ],
+  "pune":[
+    {name:"JW Marriott Hotel Pune", area:"SB Road", price:12000, rating:4.7, amenities:["Rooftop Bar","Pool","Spa"]},
+    {name:"Conrad Pune", area:"Bund Garden Road", price:11000, rating:4.6, amenities:["Spa","Pool","Executive Lounge"]},
+    {name:"Hyatt Regency Pune", area:"Viman Nagar", price:9000, rating:4.5, amenities:["Pool","Gym","Spa"]}
+  ],
+  "jaipur":[
+    {name:"Rambagh Palace, Jaipur", area:"Bhawani Singh Road", price:45000, rating:4.9, amenities:["Heritage","Butler","Palace Tour"]},
+    {name:"ITC Rajputana, Jaipur", area:"Palace Road", price:9000, rating:4.5, amenities:["Pool","Spa","Rajasthani Cuisine"]},
+    {name:"Jai Mahal Palace", area:"Civil Lines", price:22000, rating:4.7, amenities:["Heritage","Gardens","Pool"]}
+  ],
+  "ahmedabad":[
+    {name:"Hyatt Regency Ahmedabad", area:"Ashram Road", price:8500, rating:4.5, amenities:["Pool","Gym","River View"]},
+    {name:"Taj Skyline Ahmedabad", area:"SG Highway", price:9000, rating:4.6, amenities:["Pool","Spa","Restaurants"]},
+    {name:"Courtyard by Marriott Ahmedabad", area:"Satellite", price:8000, rating:4.4, amenities:["Wi-Fi","Gym","Cafe"]}
+  ],
+  "kochi":[
+    {name:"Taj Malabar Resort & Spa, Cochin", area:"Willingdon Island", price:12000, rating:4.7, amenities:["Backwater View","Spa","Pool"]},
+    {name:"Grand Hyatt Kochi Bolgatty", area:"Bolgatty Island", price:15000, rating:4.6, amenities:["Waterfront","Spa","Pool"]},
+    {name:"Fragrant Nature Kochi", area:"Fort Kochi", price:8000, rating:4.5, amenities:["Rooftop Pool","Spa","Boutique"]}
+  ],
+  "goa":[
+    {name:"Taj Fort Aguada Resort & Spa, Goa", area:"Candolim", price:18000, rating:4.7, amenities:["Beach Access","Spa","Pool"]},
+    {name:"W Goa", area:"Vagator", price:20000, rating:4.6, amenities:["Beachfront","Pool","Nightlife"]},
+    {name:"ITC Grand Goa Resort & Spa", area:"Arossim Beach", price:17000, rating:4.6, amenities:["Private Beach","Spa","Pool"]}
+  ],
+  "varanasi":[
+    {name:"BrijRama Palace, Varanasi", area:"Darbhanga Ghat", price:18000, rating:4.7, amenities:["Heritage","Ganga View","Boat Rides"]},
+    {name:"Taj Ganges, Varanasi", area:"Nadesar", price:10000, rating:4.6, amenities:["Pool","Gardens","Spa"]},
+    {name:"Radisson Hotel Varanasi", area:"Cantonment", price:7000, rating:4.3, amenities:["Wi-Fi","Pool","Gym"]}
+  ]
+};
+const HOTEL_FALLBACK = [
+  {name:"Taj Hotels (City Property)", area:"Central Area", price:14000, rating:4.6, amenities:["Wi-Fi","Pool","Spa"]},
+  {name:"ITC Hotels (Luxury Collection)", area:"Prime District", price:12000, rating:4.5, amenities:["Spa","Pool","Dining"]},
+  {name:"Hyatt/Marriott (Business)", area:"Business District", price:9000, rating:4.4, amenities:["Wi-Fi","Gym","Cafe"]}
+];
+
+/* ---------- NEW: Real shopping DB (malls/markets/brand hubs in India) ---------- */
+const SHOP_DB = {
+  // Delhi
+  "delhi": [
+    {name:"Select CITYWALK", type:"Mall", area:"Saket", hours:"10:00 AM – 10:00 PM", highlights:["Zara","H&M","Sephora","PVR"], img:"mall,delhi"},
+    {name:"DLF Promenade", type:"Mall", area:"Vasant Kunj", hours:"10:00 AM – 10:00 PM", highlights:["Zara","Marks & Spencer","Food Court"], img:"promenade,delhi"},
+    {name:"DLF Emporio", type:"Luxury Mall", area:"Vasant Kunj", hours:"11:00 AM – 8:00 PM", highlights:["Luxury Boutiques"], img:"emporio,delhi"}
+  ],
+  "new delhi": [
+    {name:"Select CITYWALK", type:"Mall", area:"Saket", hours:"10:00 AM – 10:00 PM", highlights:["Zara","H&M","Sephora","PVR"], img:"mall,delhi"},
+    {name:"DLF Promenade", type:"Mall", area:"Vasant Kunj", hours:"10:00 AM – 10:00 PM", highlights:["Zara","Marks & Spencer","Food Court"], img:"promenade,delhi"},
+    {name:"DLF Emporio", type:"Luxury Mall", area:"Vasant Kunj", hours:"11:00 AM – 8:00 PM", highlights:["Luxury Boutiques"], img:"emporio,delhi"}
+  ],
+  // Mumbai
+  "mumbai": [
+    {name:"Phoenix Palladium", type:"Mall", area:"Lower Parel", hours:"11:00 AM – 10:00 PM", highlights:["Zara","Sephora","H&M","Restaurants"], img:"phoenix,mumbai"},
+    {name:"Infiniti Mall", type:"Mall", area:"Malad West", hours:"11:00 AM – 10:00 PM", highlights:["Shoppers Stop","PVR","Food Court"], img:"infiniti,mumbai"},
+    {name:"Colaba Causeway", type:"Street Market", area:"Colaba", hours:"10:00 AM – 9:00 PM", highlights:["Souvenirs","Clothing","Accessories"], img:"market,mumbai"}
+  ],
+  // Bengaluru
+  "bengaluru": [
+    {name:"Phoenix Marketcity", type:"Mall", area:"Whitefield", hours:"10:30 AM – 10:00 PM", highlights:["Zara","H&M","Decathlon"], img:"phoenix,bangalore"},
+    {name:"Orion Mall", type:"Mall", area:"Rajajinagar", hours:"10:00 AM – 10:00 PM", highlights:["Lifestyle","Croma","PVR"], img:"orion,bangalore"},
+    {name:"UB City", type:"Luxury Mall", area:"Vittal Mallya Road", hours:"11:00 AM – 11:00 PM", highlights:["Luxury Boutiques","Dining"], img:"ubcity,bangalore"}
+  ],
+  "bangalore": [
+    {name:"Phoenix Marketcity", type:"Mall", area:"Whitefield", hours:"10:30 AM – 10:00 PM", highlights:["Zara","H&M","Decathlon"], img:"phoenix,bangalore"},
+    {name:"Orion Mall", type:"Mall", area:"Rajajinagar", hours:"10:00 AM – 10:00 PM", highlights:["Lifestyle","Croma","PVR"], img:"orion,bangalore"},
+    {name:"UB City", type:"Luxury Mall", area:"Vittal Mallya Road", hours:"11:00 AM – 11:00 PM", highlights:["Luxury Boutiques","Dining"], img:"ubcity,bangalore"}
+  ],
+  // Hyderabad
+  "hyderabad": [
+    {name:"Sarath City Capital Mall", type:"Mall", area:"Kondapur", hours:"11:00 AM – 10:00 PM", highlights:["H&M","Decathlon","Food Court"], img:"mall,hyderabad"},
+    {name:"Inorbit Mall Hyderabad", type:"Mall", area:"Madhapur", hours:"11:00 AM – 10:00 PM", highlights:["Shoppers Stop","Lifestyle","IMAX"], img:"inorbit,hyderabad"},
+    {name:"GVK One Mall", type:"Mall", area:"Banjara Hills", hours:"11:00 AM – 9:30 PM", highlights:["Shoppers Stop","Dining"], img:"gvk,hyderabad"}
+  ],
+  // Chennai
+  "chennai": [
+    {name:"Phoenix Marketcity Chennai", type:"Mall", area:"Velachery", hours:"11:00 AM – 10:00 PM", highlights:["Zara","H&M","PVR"], img:"phoenix,chennai"},
+    {name:"Express Avenue", type:"Mall", area:"Royapettah", hours:"10:00 AM – 10:00 PM", highlights:["Shoppers Stop","Zara","Food Court"], img:"express,chennai"},
+    {name:"VR Chennai", type:"Mall", area:"Anna Nagar", hours:"11:00 AM – 10:00 PM", highlights:["H&M","PVR","Dining"], img:"vr,chennai"}
+  ],
+  // Kolkata
+  "kolkata": [
+    {name:"South City Mall", type:"Mall", area:"Prince Anwar Shah Road", hours:"10:00 AM – 9:30 PM", highlights:["Pantaloons","Shoppers Stop","PVR"], img:"southcity,kolkata"},
+    {name:"Quest Mall", type:"Mall", area:"Park Circus", hours:"11:00 AM – 9:00 PM", highlights:["Zara","Lifestyle","Food Court"], img:"quest,kolkata"},
+    {name:"New Market (Hogg Market)", type:"Market", area:"Esplanade", hours:"10:00 AM – 8:00 PM", highlights:["Clothing","Accessories","Bargains"], img:"market,kolkata"}
+  ],
+  // Pune
+  "pune": [
+    {name:"Phoenix Marketcity Pune", type:"Mall", area:"Viman Nagar", hours:"11:00 AM – 10:00 PM", highlights:["Zara","H&M","PVR"], img:"phoenix,pune"},
+    {name:"Amanora Mall", type:"Mall", area:"Hadapsar", hours:"11:00 AM – 10:00 PM", highlights:["Shoppers Stop","H&M","Dining"], img:"amanora,pune"},
+    {name:"SGS Mall", type:"Mall", area:"Camp", hours:"11:00 AM – 9:00 PM", highlights:["Brand Mix","Food"], img:"sgs,pune"}
+  ],
+  // Jaipur
+  "jaipur": [
+    {name:"World Trade Park (WTP)", type:"Mall", area:"Malviya Nagar", hours:"11:00 AM – 10:00 PM", highlights:["Brand Mix","Food Court"], img:"wtp,jaipur"},
+    {name:"Triton Mall", type:"Mall", area:"Jhotwara", hours:"11:00 AM – 10:00 PM", highlights:["Lifestyle","Entertainment"], img:"triton,jaipur"},
+    {name:"Johari Bazaar", type:"Market", area:"Old City", hours:"11:00 AM – 9:00 PM", highlights:["Jewellery","Textiles"], img:"johari,jaipur"}
+  ],
+  // Ahmedabad
+  "ahmedabad": [
+    {name:"Nexus Ahmedabad One", type:"Mall", area:"Vastrapur", hours:"11:00 AM – 10:00 PM", highlights:["Zara","H&M","Food Court"], img:"ahmedabad one"},
+    {name:"Palladium Ahmedabad", type:"Mall", area:"Thaltej", hours:"11:00 AM – 10:00 PM", highlights:["Premium Brands","Dining"], img:"palladium,ahmedabad"},
+    {name:"Law Garden Market", type:"Market", area:"Ellisbridge", hours:"Evening – Late", highlights:["Handicrafts","Clothing"], img:"market,ahmedabad"}
+  ],
+  // Kochi
+  "kochi": [
+    {name:"Lulu Mall Kochi", type:"Mall", area:"Edappally", hours:"10:00 AM – 11:00 PM", highlights:["Hypermarket","Brands","Food Court"], img:"lulu,kochi"},
+    {name:"Centre Square Mall", type:"Mall", area:"MG Road", hours:"10:00 AM – 10:00 PM", highlights:["Brand Mix","PVR"], img:"centre square,kochi"},
+    {name:"Oberon Mall", type:"Mall", area:"Bypass", hours:"10:00 AM – 10:00 PM", highlights:["Shops","Food"], img:"oberon,kochi"}
+  ],
+  // Goa (Panaji/North)
+  "goa": [
+    {name:"Mall De Goa", type:"Mall", area:"Porvorim", hours:"10:00 AM – 10:00 PM", highlights:["Brands","Dining","Cinema"], img:"mall,de goa"},
+    {name:"18th June Road", type:"Market Street", area:"Panaji", hours:"10:00 AM – 9:00 PM", highlights:["Clothing","Footwear","Souvenirs"], img:"shopping,goa"},
+    {name:"Anjuna Flea Market", type:"Flea Market", area:"Anjuna", hours:"Wed (Seasonal)", highlights:["Boho Wear","Handicrafts"], img:"anjuna,goa"}
+  ],
+  // Varanasi
+  "varanasi": [
+    {name:"JHV Mall", type:"Mall", area:"Cantonment", hours:"11:00 AM – 9:30 PM", highlights:["Shops","Cinema","Food"], img:"jhv,varanasi"},
+    {name:"PDR Mall", type:"Mall", area:"Sigra", hours:"11:00 AM – 9:30 PM", highlights:["Brands","Dining"], img:"pdr,varanasi"},
+    {name:"Godowlia Market", type:"Market", area:"Godowlia", hours:"10:00 AM – 9:00 PM", highlights:["Silk","Clothing","Souvenirs"], img:"market,varanasi"}
+  ],
+  // Lucknow
+  "lucknow": [
+    {name:"Phoenix Palassio", type:"Mall", area:"Amar Shaheed Path", hours:"11:00 AM – 10:00 PM", highlights:["Zara","H&M","Food Court"], img:"phoenix,lucknow"},
+    {name:"Lulu Mall Lucknow", type:"Mall", area:"Amar Shaheed Path", hours:"10:00 AM – 11:00 PM", highlights:["Hypermarket","Brands","Dining"], img:"lulu,lucknow"},
+    {name:"Hazratganj Market", type:"Market", area:"Hazratganj", hours:"10:00 AM – 9:00 PM", highlights:["Clothing","Handloom"], img:"hazratganj,lucknow"}
+  ],
+  // Indore
+  "indore": [
+    {name:"Treasure Island Mall (TI)", type:"Mall", area:"MG Road", hours:"11:00 AM – 10:00 PM", highlights:["Lifestyle","PVR","Food"], img:"treasure island,indore"},
+    {name:"C21 Mall", type:"Mall", area:"AB Road", hours:"11:00 AM – 10:00 PM", highlights:["Brands","Dining"], img:"c21,indore"},
+    {name:"Malhar Mega Mall", type:"Mall", area:"AB Road", hours:"11:00 AM – 10:00 PM", highlights:["Retail","Food"], img:"malhar,indore"}
+  ],
+  // Surat
+  "surat": [
+    {name:"VR Surat", type:"Mall", area:"Dumas Road", hours:"11:00 AM – 10:00 PM", highlights:["Zara","H&M","Dining"], img:"vr,surat"},
+    {name:"RahulRaj Mall", type:"Mall", area:"Dumas Road", hours:"11:00 AM – 10:00 PM", highlights:["Retail","Food"], img:"rahulraj,surat"},
+    {name:"City Centre (Ring Road)", type:"Wholesale/Market", area:"Ring Road", hours:"10:00 AM – 8:30 PM", highlights:["Textiles","Sarees"], img:"textile,surat"}
+  ],
+  // Chandigarh / Mohali
+  "chandigarh": [
+    {name:"Elante Mall", type:"Mall", area:"Industrial Area Phase I", hours:"11:00 AM – 10:00 PM", highlights:["H&M","Zara","PVR"], img:"elante,chandigarh"},
+    {name:"Sector 17 Market", type:"Market", area:"Sector 17", hours:"10:00 AM – 9:00 PM", highlights:["Clothing","Footwear","Cafes"], img:"sector 17,chandigarh"},
+    {name:"VR Punjab (Mohali)", type:"Mall", area:"Kharar Road", hours:"11:00 AM – 10:00 PM", highlights:["Brands","Dining"], img:"vr punjab,mohali"}
+  ],
+  // Visakhapatnam
+  "visakhapatnam": [
+    {name:"CMR Central", type:"Mall", area:"Maddilapalem", hours:"11:00 AM – 10:00 PM", highlights:["Retail","Food","Cinema"], img:"cmr,visakhapatnam"},
+    {name:"Trendset Mall", type:"Mall", area:"Dwaraka Nagar", hours:"11:00 AM – 10:00 PM", highlights:["Retail","Food"], img:"trendset,visakhapatnam"},
+    {name:"Waltair Uplands Boutiques", type:"Shopping Street", area:"Waltair Uplands", hours:"11:00 AM – 9:00 PM", highlights:["Boutiques","Accessories"], img:"shopping,visakhapatnam"}
+  ]
+};
+
+// fallback chain options (real, pan-India)
+const SHOP_FALLBACK = [
+  {name:"Shoppers Stop", type:"Department Store", area:"City Center", hours:"11:00 AM – 9:00 PM", highlights:["Clothing","Accessories","Beauty"], img:"shoppers stop,india"},
+  {name:"Lifestyle Stores", type:"Department Store", area:"Prime District", hours:"11:00 AM – 9:00 PM", highlights:["Apparel","Footwear","Bags"], img:"lifestyle stores,india"},
+  {name:"Reliance Trends", type:"Fashion", area:"Main Market", hours:"11:00 AM – 9:00 PM", highlights:["Value Fashion","Ethnic Wear"], img:"reliance trends,india"}
+];
+
+function normalizeCity(s){ return (s||"").trim().toLowerCase(); }
+
+/* --------------------------------------------------------------- */
+
+async function searchPlace(){
+  const start = document.getElementById("start-input").value.trim();
+  const place = document.getElementById("place-input").value.trim();
+  if(!start || !place){ alert("Enter starting point and destination!"); return; }
+
+  getWeather(place);
+
+  // Flights (unchanged UI; realistic pricing)
+  const times = ["08:00 AM","12:30 PM","06:00 PM"];
+  const prices = await estimateFaresINR(start, place, times);
+  const flights = times.map((time, i)=>({ from:start, to:place, time, price: prices[i] }));
+  document.getElementById('flights-list').innerHTML = flights.map(f=>`
+    <div class="card">
+      <h3>${f.from} → ${f.to}</h3>
+      <p>Departure: ${f.time}</p>
+      <p>Price: ₹${toINR(f.price)}</p>
+      <button onclick="openBooking('Flight','${f.from} → ${f.to} at ${f.time}')">Book Now</button>
+    </div>
+  `).join('');
+
+  // ---------- HOTELS (unchanged from previous step) ----------
+  const key = normalizeCity(place);
+  const hotels = (HOTEL_DB[key] && HOTEL_DB[key].length ? HOTEL_DB[key] : HOTEL_FALLBACK).map(h => ({
+    ...h,
+    phone: "N/A",
+    checkin: "2:00 PM",
+    checkout: "11:00 AM",
+    address: `${h.area}, ${place}`
+  }));
+  document.getElementById('hotels-list').innerHTML = hotels.map(h=>`
+    <div class="card">
+      <div style="font-size:48px;margin-bottom:8px">🏩</div>
+      <h3>${h.name}</h3>
+      <p><span class="pill">${'★'.repeat(Math.round(h.rating))}<span class="meta"> ${h.rating.toFixed(1)}/5</span></span></p>
+      <p><strong>Area:</strong> ${h.area}</p>
+      <p><strong>Amenities:</strong> ${h.amenities.join(', ')}</p>
+      <p><strong>Price:</strong> ₹${toINR(h.price)}/night</p>
+      <p><strong>Phone:</strong> ${h.phone}</p>
+      <p><strong>Check-in:</strong> ${h.checkin} · <strong>Check-out:</strong> ${h.checkout}</p>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <a class="btn" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name+' '+place)}">View Map</a>
+        <button class="btn" onclick="openBooking('Hotel','${h.name}')">Book</button>
+      </div>
+    </div>
+  `).join('');
+
+  // ---------- SHOPPING: now real malls/markets/shops ----------
+  const shops = (SHOP_DB[key] && SHOP_DB[key].length ? SHOP_DB[key] : SHOP_FALLBACK).map(s => ({
+    ...s,
+    address: `${s.area}, ${place}`,
+    mapQuery: `${s.name} ${place}`
+  }));
+
+  document.getElementById('shopping-list').innerHTML = shops.map(s=>`
+    <div class="card">
+      <img src="https://source.unsplash.com/400x300/?${encodeURIComponent(s.img)}" alt="${s.name}">
+      <h3>✨ ${s.name} 💖</h3>
+      <p><span class="pill">${s.type}</span></p>
+      <p><strong>Area:</strong> ${s.area}</p>
+      <p><strong>Hours:</strong> ${s.hours}</p>
+      <p><strong>Popular for:</strong> ${s.highlights.join(', ')}</p>
+      <a class="btn" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.mapQuery)}">View on Map</a>
+    </div>
+  `).join('');
+
+  // Reviews (unchanged)
+  const reviews=["Amazing place! ❤️","Had a wonderful trip! 🌟","Beautiful but crowded 😅"];
+  document.getElementById('reviews-list').innerHTML = reviews.map(r=>`<div class="card"><p>${r}</p></div>`).join('');
+
+  // Essentials (unchanged)
+  const essentials=["Passport","Visa Documents","Travel Insurance","First Aid Kit","Medications","Sunscreen","Water Bottle"];
+  document.getElementById('essentials-list').innerHTML = essentials.map(e=>`<div class="card"><p>${e}</p></div>`).join('');
+}
+
+// Booking Modal (unchanged)
+function openBooking(type,name){
+  document.getElementById('booking-title').innerText=`Book ${type}: ${name}`;
+  document.getElementById('book-name').value='';
+  document.getElementById('book-email').value='';
+  document.getElementById('book-date').value='';
+  document.getElementById('book-days').value='';
+  document.getElementById('booking-modal').style.display='flex';
+}
+function closeModal(){ document.getElementById('booking-modal').style.display='none'; }
+function confirmBooking(){
+  const name=document.getElementById('book-name').value;
+  const email=document.getElementById('book-email').value;
+  const date=document.getElementById('book-date').value;
+  const days=document.getElementById('book-days').value;
+  if(!name||!email||!date||!days){ alert("Please fill all details!"); return; }
+  alert(`Booking Confirmed!\nName: ${name}\nEmail: ${email}\nDate: ${date}\nNumber of days: ${days}`);
+  closeModal();
+}
+</script>
+
+</body>
+</html>
